@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PackageFolderPath Condition="'$(PackageFolderPath)' == ''">publish\$(Configuration)</PackageFolderPath>
+    <NugetPackageDirectory>$(MSBuildThisFileDirectory)..\</NugetPackageDirectory>
+    <NugetExeFilePath Condition="'$(NugetExeFilePath)' == ''">$(MSBuildProjectDirectory)\..\.nuget\NuGet.exe</NugetExeFilePath>
+  </PropertyGroup>
+  
+  <Target Name="Publish" DependsOnTargets="Build">
+    <ItemGroup>
+      <PackageFolder Include="$(PackageFolderPath)"/>
+      <DeploymentScripts Include="$(NugetPackageDirectory)\*.ps1"/>
+      <NugetExe Include="$(NugetExeFilePath)"/>
+    </ItemGroup>
+    
+    <RemoveDir Directories="@(PackageFolder)"/>
+    
+    <Copy SourceFiles="@(DeploymentScripts)" DestinationFiles="@(DeploymentScripts -> '$(PackageFolderPath)\%(RecursiveDir)%(Filename)%(Extension)')"/>
+    <Copy SourceFiles="@(NuGetExe)" DestinationFiles="@(NuGetExe -> '$(PackageFolderPath)\Deploy\%(Filename)%(Extension)')"/>
+
+    <Exec Command="$(NugetExeFilePath) pack &quot;$(MSBuildProjectFullPath)&quot; -IncludeReferencedProjects -NonInteractive -OutputDirectory &quot;$(PackageFolderPath)&quot; -Prop Configuration=$(Configuration)" />
+  </Target>
+</Project>
